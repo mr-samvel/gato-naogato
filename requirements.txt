@@ -1,0 +1,5 @@
+pandas
+matplotlib
+numpy==1.23.3
+h5py
+scikit-learn
