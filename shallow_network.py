@@ -10,7 +10,7 @@ def build_model(data_x: ndarray, activation, learning_rate):
     model.add(layers.Flatten())
     
     ### camada escondida
-    n_neurons = 80
+    n_neurons = 60
     model.add(layers.Dense(n_neurons, kernel_initializer='random_uniform', bias_initializer='random_uniform', activation=activation))
     
     ### camada de saída
@@ -55,8 +55,13 @@ testing_x, testing_y, num_testing, _ = gather_dataset('dataset/test_catvnoncat.h
 normalized_training_x = normalize_data(training_x)
 normalized_testing_x = normalize_data(testing_x)
 
-for activation in ['tanh', 'relu']: # sigmoid ruim
-    for learning_rate in [0.01, 0.05, 0.1]:
-        model = build_model(normalized_training_x, activation, learning_rate)
-        results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=500)
-        plot_results(results, activation, learning_rate)
+# for activation in ['tanh', 'relu']: # sigmoid ruim
+#     for learning_rate in [0.01, 0.05, 0.1]:
+#         model = build_model(normalized_training_x, activation, learning_rate)
+#         results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=500)
+#         plot_results(results, activation, learning_rate)
+
+# melhor?
+model = build_model(normalized_training_x, 'tanh', 0.005)
+results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=2000)
+plot_results(results, 'tanh', 0.005)
