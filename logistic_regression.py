@@ -3,7 +3,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 import numpy
 
-def train_model(training_x, training_y, penalty):
+def build_and_train_model(training_x, training_y, penalty):
     solver = 'lbfgs'
     if penalty == 'l1':
         solver = 'liblinear'
@@ -24,7 +24,7 @@ normalized_training_x = normalize_data(training_x_flat)
 normalized_testing_x = normalize_data(testing_x_flat)
 
 for penalty in [None, 'l1', 'l2']:
-    model = train_model(normalized_training_x, training_y, penalty)
+    model = build_and_train_model(normalized_training_x, training_y, penalty)
 
     training_pred_y = model.predict(normalized_training_x)
     print()

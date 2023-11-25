@@ -1,16 +1,14 @@
 from utils import gather_dataset, flatten, normalize_data
-from sklearn.metrics import confusion_matrix, accuracy_score
-from keras import Sequential, layers, optimizers
+from keras import Sequential, layers, optimizers, callbacks
 from numpy import ndarray
 import matplotlib.pyplot as plt
 
-def build_model(data_x: ndarray, activation, learning_rate):
+def build_model(data_x: ndarray, n_neurons, activation, learning_rate):
     model = Sequential()
     ### camada de entrada
     model.add(layers.Flatten())
     
     ### camada escondida
-    n_neurons = 60
     model.add(layers.Dense(n_neurons, kernel_initializer='random_uniform', bias_initializer='random_uniform', activation=activation))
     
     ### camada de saída
@@ -24,26 +22,30 @@ def build_model(data_x: ndarray, activation, learning_rate):
     model.build(data_x.shape)
     return model
 
-def plot_results(results, activation, learning_rate):
+def plot_results(results):
     acc = results.history['accuracy']
     val_acc = results.history['val_accuracy']
     loss = results.history['loss']
     val_loss = results.history['val_loss']
     epochs = range(1, len(acc) + 1)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-    plt.plot(epochs, acc, 'b', label= 'Training accuracy')
-    plt.plot(epochs, val_acc, 'r', label= 'Validation accuracy')
-    plt.suptitle('Training and Validation accuracy')
-    plt.title(f'Activation: {activation}; Learning Rate: {learning_rate}')
-    plt.legend()
-    plt.show()
+    axes[0].plot(epochs, acc, 'b', label='Training accuracy')
+    axes[0].plot(epochs, val_acc, 'r', label='Validation accuracy')
+    axes[0].set_xlabel('Epochs')
+    axes[0].set_ylabel('Accuracy')
+    axes[0].set_title('Training and Validation Accuracy')
+    axes[0].legend()
 
-    plt.figure()
-    plt.plot(epochs, loss, 'b', label= 'Training loss')
-    plt.plot(epochs, val_loss, 'r', label= 'Validation loss')
-    plt.suptitle('Training and Validation loss')
-    plt.title(f'Activation: {activation}; Learning Rate: {learning_rate}')
-    plt.legend()
+    axes[1].plot(epochs, loss, 'b', label='Training loss')
+    axes[1].plot(epochs, val_loss, 'r', label='Validation loss')
+    axes[1].set_xlabel('Epochs')
+    axes[1].set_ylabel('Loss')
+    axes[1].set_title('Training and Validation Loss')
+    axes[1].legend()
+
+    plt.tight_layout()
+
     plt.show()
 
 training_x, training_y, num_training, img_dimension = gather_dataset('dataset/train_catvnoncat.h5', 'train')
@@ -55,13 +57,17 @@ testing_x, testing_y, num_testing, _ = gather_dataset('dataset/test_catvnoncat.h
 normalized_training_x = normalize_data(training_x)
 normalized_testing_x = normalize_data(testing_x)
 
-# for activation in ['tanh', 'relu']: # sigmoid ruim
-#     for learning_rate in [0.01, 0.05, 0.1]:
-#         model = build_model(normalized_training_x, activation, learning_rate)
-#         results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=500)
-#         plot_results(results, activation, learning_rate)
+early_stopping = callbacks.EarlyStopping(patience=100, mode="min", start_from_epoch=800)
 
-# melhor?
-model = build_model(normalized_training_x, 'tanh', 0.005)
-results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=2000)
-plot_results(results, 'tanh', 0.005)
+### geração de todas as combinações de modelos
+# for activation in ['sigmoid', 'tanh', 'relu']:
+#     for n_neurons in [60, 200, 1000, 4000]:
+#         for learning_rate in [0.004, 0.008, 0.016, 0.06]:
+#             model = build_model(normalized_training_x, n_neurons, activation, learning_rate)
+#             results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=5000, callbacks=[early_stopping])
+#             plot_results(results, learning_rate)
+
+### melhor resultado
+model = build_model(normalized_training_x, 200, 'tanh', 0.008)
+results = model.fit(normalized_training_x, training_y, validation_data=(normalized_testing_x, testing_y), batch_size=num_training, epochs=5000, callbacks=[early_stopping])
+plot_results(results)
